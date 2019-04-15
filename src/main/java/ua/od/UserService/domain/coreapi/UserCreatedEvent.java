@@ -31,6 +31,7 @@ public class UserCreatedEvent {
     public Double getBalance() {
         return balance;
     }
+
     public State getState(){
         return  state;
     }

@@ -1,7 +1,6 @@
 package ua.od.UserService.application.controller.write;
 
 import org.axonframework.commandhandling.gateway.CommandGateway;
-import org.axonframework.queryhandling.QueryGateway;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,9 +14,7 @@ import java.util.UUID;
 @RequestMapping("user/write")
 public class ControllerWrite {
 
-
     private CommandGateway commandGateway;
-    private QueryGateway queryGateway;
 
     @PostMapping("/newuser")
     public void createNewUser(UserDto credentials){

@@ -6,6 +6,7 @@ import org.axonframework.modelling.command.AggregateIdentifier;
 import org.axonframework.spring.stereotype.Aggregate;
 import ua.od.UserService.application.DtoBuilder.DtoCreator;
 import ua.od.UserService.domain.coreapi.*;
+import ua.od.UserService.infostructure.repository.EventRepository;
 import ua.od.UserService.infostructure.repository.UserRepository;
 import ua.od.UserService.infostructure.service.UserService;
 
@@ -54,10 +55,12 @@ public class User {
         DtoCreator dtoCreator = new DtoCreator();
         UserRepository userRepository = new UserRepository();
         userRepository.saveNewUser(dtoCreator.createDto(event));
+        EventRepository eventRepository = new EventRepository();
+        eventRepository.writeUserCreatedEvent(event);
         LogInCommand logIn = new LogInCommand(event.getUserId(),event.getLogin(),event.getPassword(),event.getState());
     }
 
-    //Comand for LogInCommand
+    //Command for LogIn
 
     @CommandHandler
     public void handle(LogInCommand command){
@@ -66,10 +69,9 @@ public class User {
             apply(new LogedInEvent(command.getUserId(),command.getState()));
         }
         else throw new IllegalStateException("Wrong credentials!");
-
     }
 
-    //Even for someone LogedIn
+    //Event for someone LogedIn
 
     @EventSourcingHandler
     public void on(LogedInEvent event) {
@@ -77,9 +79,11 @@ public class User {
         this.state = event.getState();
         UserService userService = new UserService();
         userService.updateUser(this.userId,this.state);
+        EventRepository eventRepository = new EventRepository();
+        eventRepository.writeLogedInEvent(event);
     }
 
-    //Comand for LogOutCommand
+    //Command for LogOut
 
     @CommandHandler
     public void handle(LogOutCommand command){
@@ -89,7 +93,7 @@ public class User {
         else throw new IllegalStateException("You can't lo out when you not log in!");
     }
 
-    //Even for someone LogedOut
+    //Event for someone LogedOut
 
     @EventSourcingHandler
     public void on(LogOutEvent event) {
@@ -97,9 +101,11 @@ public class User {
         this.state = event.getState();
         UserService userService = new UserService();
         userService.updateUser(this.userId,this.state);
+        EventRepository eventRepository = new EventRepository();
+        eventRepository.writeLogOutEvent(event);
     }
 
-    //Comand ot add money
+    //Command ot add money
 
     @CommandHandler
     public void handle(AddMoneyOnBalanceCommand command) {
@@ -112,10 +118,26 @@ public class User {
     public void on(MoneyAddedOnBalanceEvent event) {
         this.balance = event.getBalance();
         this.userId = event.getUserId();
-
+        EventRepository eventRepository = new EventRepository();
+        eventRepository.writeMoneyAddedOnBalanceEvent(event);
     }
 
-    //TODO BUY BOOK
+    //Command to purchase book
+
+    @CommandHandler
+    public void handle(PurchaseBookCommand command) {
+        if(this.state==State.LogedIn || this.balance > command.getBookPrice()){
+            apply(new BookPurchasedEvent(command.getUserId(), command.getBookId()));
+        }
+    }
+
+    //Event for purchased book
+
+    @EventSourcingHandler
+    public void on(BookPurchasedEvent event){
+        UserService userService = new UserService();
+        userService.purchaseBook(event.getUserId(),event.getBookId());
+    }
 
     public String getUserId() {
         return userId;

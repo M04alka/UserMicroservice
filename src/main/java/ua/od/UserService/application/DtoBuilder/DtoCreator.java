@@ -5,12 +5,13 @@ import ua.od.UserService.domain.coreapi.UserCreatedEvent;
 public class DtoCreator {
 
     public UserDto createDto(UserCreatedEvent event){
-        UserDto userSave = new UserDto();
-        userSave.setUserId(event.getUserId());
-        userSave.setLogin(event.getLogin());
-        userSave.setPassword(event.getPassword());
-        userSave.setBalance(event.getBalance());
-        userSave.setState(event.getState());
+        UserDto userSave = new UserDto(
+                event.getUserId(),
+                event.getLogin(),
+                event.getPassword(),
+                event.getBalance(),
+                event.getState()
+        );
         return userSave;
     }
 
